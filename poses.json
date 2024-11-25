@@ -1,0 +1,119 @@
+{
+    "put_in_bin": {
+        "arm_lift_joint": 0.0,
+        "arm_flex_joint": -1.0,
+        "arm_roll_joint": 0.0,
+        "wrist_flex_joint": -0.57,
+        "wrist_roll_joint": 0.0,
+        "head_tilt_joint": 0.0,
+        "head_pan_joint": 0.0
+    },
+    "look_at_tall_table": {
+        "arm_lift_joint": 0.0,
+        "arm_flex_joint": 0.0,
+        "arm_roll_joint": -1.57,
+        "wrist_flex_joint": -1.57,
+        "wrist_roll_joint": 0.0,
+        "head_tilt_joint": -0.6,
+        "head_pan_joint": 0.0
+    },
+    "look_at_long_table": {
+        "arm_lift_joint": 0.0,
+        "arm_flex_joint": 0.0,
+        "arm_roll_joint": -1.57,
+        "wrist_flex_joint": -1.57,
+        "wrist_roll_joint": 0.0,
+        "head_tilt_joint": -0.5,
+        "head_pan_joint": 0.0
+    },
+    "grasp_on_table": {
+        "arm_lift_joint": 0.1,
+        "arm_flex_joint": -0.8,
+        "arm_roll_joint": 0.0,
+        "wrist_flex_joint": -0.77,
+        "wrist_roll_joint": 0.0,
+        "head_tilt_joint": -0.6,
+        "head_pan_joint": 0.0
+    },
+    "look_at_shelf": {
+        "arm_lift_joint": 0.0,
+        "arm_flex_joint": 0.0,
+        "arm_roll_joint": -1.57,
+        "wrist_flex_joint": -1.57,
+        "wrist_roll_joint": 0.0,
+        "head_tilt_joint": -0.3,
+        "head_pan_joint": 0.0
+    },
+    "grasp_on_shelf": {
+        "arm_lift_joint": 0.1,
+        "arm_flex_joint": -0.8,
+        "arm_roll_joint": 0.0,
+        "wrist_flex_joint": -0.77,
+        "wrist_roll_joint": 0.0,
+        "head_tilt_joint": -0.6,
+        "head_pan_joint": 0.0
+    },
+    "deliver_to_human": {
+        "arm_lift_joint": 0.5,
+        "arm_flex_joint": -0.4,
+        "arm_roll_joint": 0.0,
+        "wrist_flex_joint": -1.17,
+        "wrist_roll_joint": 0.0,
+        "head_tilt_joint": 0.7,
+        "head_pan_joint": 0.0
+    },
+    "look_at_near_floor": {
+        "arm_lift_joint": 0.0,
+        "arm_flex_joint": 0.0,
+        "arm_roll_joint": -1.57,
+        "wrist_flex_joint": -1.57,
+        "wrist_roll_joint": 0.0,
+        "head_tilt_joint": -1.0,
+        "head_pan_joint": 0.0
+    },
+    "all_neutral": {
+        "arm_lift_joint": 0.0,
+        "arm_flex_joint": 0.0,
+        "arm_roll_joint": -1.57,
+        "wrist_flex_joint": -1.57,
+        "wrist_roll_joint": 0.0,
+        "head_tilt_joint": 0.0,
+        "head_pan_joint": 0.0
+    },
+    "open_hand": {
+        "arm_lift_joint": 0.05,
+        "arm_flex_joint": -1.0,
+        "arm_roll_joint": 0.0,
+        "wrist_flex_joint": -1.1,
+        "wrist_roll_joint": 0.0,
+        "head_tilt_joint": -0.8,
+        "head_pan_joint": 0.0
+    },
+    "grasp_handle": {
+        "arm_lift_joint": 0.05,
+        "arm_flex_joint": -1.0,
+        "arm_roll_joint": 0.0,
+        "wrist_flex_joint": -1.0, 
+        "wrist_roll_joint": 0.0,
+        "head_tilt_joint": -0.8,
+        "head_pan_joint": 0.0
+    },
+    "pull_drawer": {
+        "arm_lift_joint": 0.05,
+        "arm_flex_joint": -0.9, 
+        "arm_roll_joint": 0.0,
+        "wrist_flex_joint": -1.0,
+        "wrist_roll_joint": 0.0,
+        "head_tilt_joint": -0.7,
+        "head_pan_joint": 0.0
+    },
+    "release_handle": {
+        "arm_lift_joint": 0.05,
+        "arm_flex_joint": -0.9,
+        "arm_roll_joint": 0.0,
+        "wrist_flex_joint": -1.1,
+        "wrist_roll_joint": 0.0,
+        "head_tilt_joint": -0.7,
+        "head_pan_joint": 0.0
+    }
+}

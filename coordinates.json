@@ -1,0 +1,41 @@
+{
+    "positions": {
+        "tall_table": [-0.02, 1.0, 95],
+        "long_table_r": [1.45, 1.0, 90],
+        "near_long_table_l": [0.2, 0.4, 90],
+        "drawer": [0.35, 0.2, -90],
+        "stair_like_drawer":[0.178, 0.8, -90],
+        "bin_a": [2.4, 0.0, -90],
+        "bin_a_place": [2.35, 0.0, -90],
+        "bin_b": [2.7, 0.0, -90],
+        "bin_b_place": [2.65, 0.0, -80],
+        "tray_a": [1.9, 0.0, -90],
+        "tray_a_place": [1.85, 0.0, -90],
+        "container": [0.95, 0.0, -90],
+        "left_drawer_place": [0.2, 0.2, -90],
+        "standby_2a": [2.5, 1.85, 90],
+        "go_throw_2a": [2.0, 3.5, 90],
+        "shelf": [2.3, 3.9, 90],
+        "person_a": [0.7, 2.8, 180],
+        "person_b": [0.7, 3.9, 180],
+        "home": [0, 0.2, 0]
+    },
+    "routes": {
+        "test": [
+            "tall_table",
+            "long_table_r",
+            "near_long_table_l",
+            "drawer",
+            "bin_a",
+            "bin_a_place",
+            "bin_b",
+            "bin_b_place",
+            "standby_2a",
+            "go_throw_2a",
+            "shelf",
+            "person_a",
+            "person_b",
+            "home"
+        ]
+    }
+}
