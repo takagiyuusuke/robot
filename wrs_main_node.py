@@ -475,7 +475,7 @@ class WrsMainController(object):
             if i == 9 or action[i] != action[i + 1]:
                 self.goto_pos([x, y, 90])
 
-    def where_to_put(self, name):
+    def where_to_put(self, name, cnt):
         """
         nameに対応する置くべき場所を返す
         62211170 高木裕輔
@@ -549,18 +549,19 @@ class WrsMainController(object):
         rospy.loginfo("WHERE TO GO!! " + place)
         # 一旦引き出しを開ける動作はあきらめてbin_bに入れる
         if place == "tray":
-            if random.random() >= 0.5:
-                return ("tray_a_place", "put_in_bin")
+            # trayの場合は交互に入れる
+            if cnt % 2 == 0:
+                return ("tray_a_place", "put_in_bin", cnt + 1)
             else:
-                return ("tray_b_place", "put_in_bin")
+                return ("tray_b_place", "put_in_bin", cnt + 1)
         elif place == "top_bottom":
-            return ("bon_b_place", "put_in_bin")
+            return ("bon_b_place", "put_in_bin", cnt)
         elif place == "left":
-            return ("bon_b_place", "put_in_bin")
+            return ("bon_b_place", "put_in_bin", cnt)
         elif place == "bin_a":
-            return ("bin_a_place", "put_in_bin")
+            return ("bin_a_place", "put_in_bin", cnt)
         elif place == "container":
-            return ("container", "put_in_bin")
+            return ("container", "put_in_bin", cnt)
 
     def execute_task1(self):
         """
@@ -577,7 +578,7 @@ class WrsMainController(object):
             ("long_table_r", "look_at_tall_table"),
         ]
 
-        total_cnt = 0
+        cnt = 0
         for plc, pose in hsr_position:
             for _ in range(self.DETECT_CNT):
                 # 移動と視線指示
@@ -605,9 +606,9 @@ class WrsMainController(object):
                 self.change_pose("grasp_on_table")
                 self.exec_graspable_method(grasp_pos, label)
                 self.change_pose("all_neutral")
+                val1, val2, cnt = self.where_to_put(label, cnt)
                 # binに入れる
-                self.put_in_place(*self.where_to_put(str(label)))
-                total_cnt += 1
+                self.put_in_place(val1, val2)
 
     def execute_task2a(self):
         """
