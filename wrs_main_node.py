@@ -440,6 +440,11 @@ class WrsMainController(object):
         self.change_pose("all_neutral")
 
     def execute_avoid_blocks(self):
+        """
+        物体をよけて進行する
+        62211170 高木裕輔
+        """
+        # 所定の位置に立って障害物を検出
         detected_objs = self.get_latest_detection()
         bboxes = detected_objs.bboxes
         pos_bboxes = [self.get_grasp_coordinate(bbox) for bbox in bboxes]
@@ -455,9 +460,11 @@ class WrsMainController(object):
         board = 0
         for i in disables:
             board = board * 100 + i
+        # 強化学習の結果を参照して実際に障害物を避けて動く
         action = self.a2table[str(board)]
-        x = 2.275
-        y = 1.725
+        x = 2.175
+        y = 1.715
+        self.goto_pos([x, y, 90])
         for i in range(10):
             a = action[i]
             if a == "0":
@@ -553,8 +560,6 @@ class WrsMainController(object):
         elif place == "container":
             return ("container", "put_in_bin")
 
-    # TODO jsonにcontainerの場所を定義する
-
     def execute_task1(self):
         """
         task1を実行する
@@ -613,6 +618,7 @@ class WrsMainController(object):
         task2aを実行する
         """
         rospy.loginfo("#### start Task 2a ####")
+        self.goto_name("home")
         self.change_pose("look_at_near_floor")
         gripper.command(0)
         self.change_pose("look_at_near_floor")
