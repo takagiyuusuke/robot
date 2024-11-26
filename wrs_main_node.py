@@ -453,7 +453,7 @@ class WrsMainController(object):
         for bbox in pos_bboxes:
             pos_x = bbox.x
             pos_y = bbox.y
-            pos_x = int((pos_x - 1.6) / 1.5)
+            pos_x = int((pos_x - 1.5) / 1.5)
             pos_y = int((pos_y - 1.8) / 1.7)
             disables.append(pos_x * 10 + pos_y)
         disables.sort()
@@ -478,6 +478,7 @@ class WrsMainController(object):
     def where_to_put(self, name):
         """
         nameに対応する置くべき場所を返す
+        62211170 高木裕輔
         """
         name_to_category = {
             "cracker_box": "food",
@@ -546,15 +547,16 @@ class WrsMainController(object):
 
         place = category_to_place[name_to_category[name]]
         rospy.loginfo("WHERE TO GO!! " + place)
+        # 一旦引き出しを開ける動作はあきらめてbin_bに入れる
         if place == "tray":
             if random.random() >= 0.5:
                 return ("tray_a_place", "put_in_bin")
             else:
                 return ("tray_b_place", "put_in_bin")
         elif place == "top_bottom":
-            return ("bon_a_place", "put_in_bin")
+            return ("bon_b_place", "put_in_bin")
         elif place == "left":
-            return ("bon_a_place", "put_in_bin")
+            return ("bon_b_place", "put_in_bin")
         elif place == "bin_a":
             return ("bin_a_place", "put_in_bin")
         elif place == "container":
@@ -574,11 +576,6 @@ class WrsMainController(object):
             ("long_table_r", "look_at_tall_table"),
             ("long_table_r", "look_at_tall_table"),
         ]
-        # self.change_pose("open_hand")
-        # self.goto_name("left_drawer_place")
-        # self.change_pose("grasp_handle")
-        # self.change_pose("pull_drawer")
-        # self.change_pose("release_handle")
 
         total_cnt = 0
         for plc, pose in hsr_position:
@@ -608,9 +605,8 @@ class WrsMainController(object):
                 self.change_pose("grasp_on_table")
                 self.exec_graspable_method(grasp_pos, label)
                 self.change_pose("all_neutral")
-                s1, s2 = self.where_to_put(str(label))
                 # binに入れる
-                self.put_in_place(s1, s2)
+                self.put_in_place(*self.where_to_put(str(label)))
                 total_cnt += 1
 
     def execute_task2a(self):
