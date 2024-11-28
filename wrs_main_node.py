@@ -10,6 +10,7 @@ import os
 from select import select
 import traceback
 from turtle import pos
+import re
 import rospy
 import rospkg
 import tf2_ros
@@ -18,10 +19,8 @@ from detector_msgs.srv import (
     SetTransformFromBBox, SetTransformFromBBoxRequest,
     GetObjectDetection, GetObjectDetectionRequest)
 from wrs_algorithm.util import omni_base, whole_body, gripper
-import math
-import random
-
-import re
+# import math
+# import random
 
 
 class WrsMainController(object):
@@ -372,7 +371,7 @@ class WrsMainController(object):
         rospy.sleep(5.0)
         self.change_pose("all_neutral")
 
-    def pull_out_trofast(self, x, y, z, yaw, pitch, roll):
+    def pull_out_trofast(self, x, y, z, yaw, pitch, roll):  # pylint: disable=invalid-name
         # trofastの引き出しを引き出す
         self.goto_name("stair_like_drawer")
         self.change_pose("grasp_on_table")
@@ -449,29 +448,33 @@ class WrsMainController(object):
         bboxes = detected_objs.bboxes
         pos_bboxes = [self.get_grasp_coordinate(bbox) for bbox in bboxes]
         # 障害物の10x10の中での座標を特定
-        disables = []
+        disables = set()  # 重複認識を避けるためにsetを使用
         for bbox in pos_bboxes:
             pos_x = bbox.x
             pos_y = bbox.y
-            pos_x = int((pos_x - 1.5) / 1.5)
-            pos_y = int((pos_y - 1.8) / 1.7)
-            disables.append(pos_x * 10 + pos_y)
-        disables.sort()
+            pos_x = int((pos_x - 1.6) / 0.16)
+            pos_y = int((pos_y - 2.0) / 0.12)
+            disables.add(pos_x * 10 + pos_y)
+            rospy.loginfo("DISABLE: " + str(pos_x) + "," + str(pos_y))
+        disables = sorted(disables)
         board = 0
         for i in disables:
             board = board * 100 + i
+        rospy.loginfo("BOARD: " + str(board))
         # 強化学習の結果を参照して実際に障害物を避けて動く
         action = self.a2table[str(board)]
-        x = 2.175
-        y = 1.715
+        x = 2.32
+        y = 1.94
         self.goto_pos([x, y, 90])
         for i in range(10):
             a = action[i]
             if a == "0":
-                x += 0.15
+                # x += 0.16
+                x += 0.23
             elif a == "1":
-                x -= 0.15
-            y += 0.17
+                # x -= 0.16
+                x -= 0.23
+            y += 0.12
             if i == 9 or action[i] != action[i + 1]:
                 self.goto_pos([x, y, 90])
 
@@ -539,7 +542,7 @@ class WrsMainController(object):
 
         category_to_place = {
             "food": "tray",
-            "kitchen": "container",
+            "kitchen_item": "container",
             "task": "bin_a",
             "shape": "left",
             "tool": "top_bottom"
@@ -552,12 +555,11 @@ class WrsMainController(object):
             # trayの場合は交互に入れる
             if cnt % 2 == 0:
                 return ("tray_a_place", "put_in_bin", cnt + 1)
-            else:
-                return ("tray_b_place", "put_in_bin", cnt + 1)
+            return ("tray_b_place", "put_in_bin", cnt + 1)
         elif place == "top_bottom":
-            return ("bon_b_place", "put_in_bin", cnt)
+            return ("bin_b_place", "put_in_bin", cnt)
         elif place == "left":
-            return ("bon_b_place", "put_in_bin", cnt)
+            return ("bin_b_place", "put_in_bin", cnt)
         elif place == "bin_a":
             return ("bin_a_place", "put_in_bin", cnt)
         elif place == "container":
@@ -571,7 +573,7 @@ class WrsMainController(object):
         hsr_position = [
             ("tall_table", "look_at_tall_table"),
             ("tall_table", "look_at_tall_table"),
-            ("tall_table", "look_at_tall_table"),
+            # ("tall_table", "look_at_tall_table"),
             ("near_long_table_l", "look_at_near_floor"),
             ("near_long_table_l", "look_at_near_floor"),
             ("long_table_r", "look_at_tall_table"),
