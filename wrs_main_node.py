@@ -452,30 +452,32 @@ class WrsMainController(object):
         for bbox in pos_bboxes:
             pos_x = bbox.x
             pos_y = bbox.y
-            pos_x = int((pos_x - 1.6) / 0.16)
-            pos_y = int((pos_y - 2.0) / 0.12)
-            disables.add(pos_x * 10 + pos_y)
+            pos_x = int((pos_x - 1.5) / 0.1)
+            pos_y = int((pos_y - 1.8) / 0.1)
+            disables.add(pos_x * 100 + pos_y)
             rospy.loginfo("DISABLE: " + str(pos_x) + "," + str(pos_y))
         disables = sorted(disables)
         board = 0
         for i in disables:
-            board = board * 100 + i
+            board = board * 10000 + i
         rospy.loginfo("BOARD: " + str(board))
         # 強化学習の結果を参照して実際に障害物を避けて動く
         action = self.a2table[str(board)]
-        x = 2.32
-        y = 1.94
+        x = 1.5 + 0.8 + 0.05
+        y = 1.8 - 0.05
         self.goto_pos([x, y, 90])
         for i in range(10):
             a = action[i]
             if a == "0":
-                # x += 0.16
-                x += 0.23
+                x += 0.1
             elif a == "1":
-                # x -= 0.16
-                x -= 0.23
-            y += 0.12
-            if i == 9 or action[i] != action[i + 1]:
+                x -= 0.1
+            elif a == "3":
+                x += 0.2
+            elif a == "4":
+                x -= 0.2
+            y += 0.1
+            if i == 14 or action[i] != action[i + 1]:
                 self.goto_pos([x, y, 90])
 
     def where_to_put(self, name, cnt):
