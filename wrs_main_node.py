@@ -465,7 +465,7 @@ class WrsMainController(object):
         action = self.a2table[str(board)]
         x = 1.5 + 0.8 + 0.05
         y = 1.8 - 0.05
-        self.goto_pos([x, y, 90])
+        # self.goto_pos([x, y, 90])
         for i in range(10):
             a = action[i]
             if a == "0":
@@ -575,7 +575,6 @@ class WrsMainController(object):
         hsr_position = [
             ("tall_table", "look_at_tall_table"),
             ("tall_table", "look_at_tall_table"),
-            # ("tall_table", "look_at_tall_table"),
             ("near_long_table_l", "look_at_near_floor"),
             ("near_long_table_l", "look_at_near_floor"),
             ("long_table_r", "look_at_tall_table"),
