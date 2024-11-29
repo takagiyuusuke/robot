@@ -37,6 +37,27 @@ class WrsMainController(object):
     DETECT_CNT = 1
     TROFAST_Y_OFFSET = 0.2
 
+    """
+    instructionを解釈するためのリスト
+    62214418 中本光一
+    """
+    VALID_OBJECTS = [
+        "cracker_box", "sugar_box", "pudding_box", "gelatin_box", "potted_meat_can",
+        "master_chef_can", "tuna_fish_can", "chips_can", "mustard_bottle",
+        "tomato_soup_can", "banana", "strawberry", "apple", "lemon", "peach",
+        "pear", "orange", "plum", "windex_bottle", "bleach_cleanser", "sponge",
+        "pitcher_base", "pitcher_lid", "plate", "bowl", "fork", "spoon", "spatula",
+        "wine_glass", "mug", "large_marker", "small_marker", "padlock", 
+        "bolt_and_nut", "clamp", "credit_card_blank", "mini_soccer_ball", 
+        "softball", "baseball", "tennis_ball", "racquetball", "golf_ball", 
+        "marble", "cup", "foam_brick", "dice", "rope", "chain", "rubiks_cube", 
+        "colored_wood_block", "nine_hole_peg_test", "toy_airplane", "lego_duplo", 
+        "magazine", "black_t_shirt", "timer"
+    ]
+    VALID_PERSON_POSITIONS = [
+        "left", "right"
+    ]
+
     def __init__(self):
         # 変数の初期化
         self.instruction_list = []
@@ -243,27 +264,28 @@ class WrsMainController(object):
             return None
         return cls.get_most_graspable_bbox(match_objs)
 
-    @staticmethod
-    def extract_target_obj_and_person(instruction):
+    @classmethod
+    def extract_target_obj_and_person(cls, instruction):
         """
         指示文から対象となる物体名称を抽出する
+        62214418 中本光一
         """
-        # TODO: 関数は未完成です。引数のinstructionを利用すること
         rospy.loginfo(
             "[extract_target_obj_and_person] instruction:" + instruction)
         target_obj = None
         target_person = None
 
-        # 物体の名称を抽出（例えば "mustard_bottle"）
-        obj_match = re.search(r'(\w+)_bottle', instruction, re.IGNORECASE)
-        if obj_match:
-            target_obj = obj_match.group(1)  # "mustard" のような物体名
+        words = instruction.split()
 
-        # 人物の位置（例えば "left"）
-        person_match = re.search(
-            r'to person (\w+)', instruction, re.IGNORECASE)
-        if person_match:
-            target_person = person_match.group(1)  # "left" のような人物名（位置）
+        # 物体名と人物を探す
+        for word in words:
+            if word in cls.VALID_OBJECTS:
+                target_obj = word
+            elif word in cls.VALID_PERSON_POSITIONS:
+                if word == "left":
+                    target_person = "person_a"
+                elif word == "right":
+                    target_person = "person_b"
 
         return target_obj, target_person
 
