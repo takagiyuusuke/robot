@@ -496,8 +496,9 @@ class WrsMainController(object):
 
         self.goto_pos([x, y, 90])  # 初期位置に移動
 
+        num_action = 15
         # 経路に沿ってロボットを移動させる
-        for i in range(15):
+        for i in range(num_action):
             action = actions[i]
             if action == "0":
                 x += gap
@@ -508,7 +509,7 @@ class WrsMainController(object):
             elif action == "4":
                 x -= gap * 2
             y += gap
-            if i == 14 or actions[i] != actions[i + 1]:
+            if i == num_action - 1 or actions[i] != actions[i + 1]:
                 self.goto_pos([x, y, 90])
 
     def where_to_put(self, name, cnt):
