@@ -465,15 +465,24 @@ class WrsMainController(object):
         物体をよけて進行する
         62211170 高木裕輔
         """
-        # 所定の位置に立って障害物を検出
+
+        ofst_x = 1.5  # 左上のx座標
+        ofst_y = 1.8  # 左上のy座標
+        gap = 0.1  # マスの1辺の大きさ
+
+        # 初期値を設定
+        (x_first, y_first) = (8, -1)  # 初期の座標
+        x = ofst_x + gap * (x_first + 0.5)
+        y = ofst_x - gap * (y_first + 0.5)
+
+        self.goto_pos([x, y, 90])  # 初期位置に移動
+
+        # 障害物を検出
         detected_objs = self.get_latest_detection()
         bboxes = detected_objs.bboxes
         pos_bboxes = [self.get_grasp_coordinate(bbox) for bbox in bboxes]
 
         # 障害物の10x10の中での座標を特定
-        ofst_x = 1.5  # 左上のx座標
-        ofst_y = 1.8  # 左上のy座標
-        gap = 0.1  # マスの1辺の大きさ
         disables = set()  # 重複認識を避けるためにsetを使用
         for bbox in pos_bboxes:
             pos_x = (bbox.x - ofst_x) // gap
@@ -488,13 +497,6 @@ class WrsMainController(object):
 
         # 障害物の位置をもとに経路を長さ15の文字列として取得
         actions = self.a1table[str(board)]
-
-        # 初期値を設定
-        (x_first, y_first) = (8, -1)  # 初期の座標
-        x = ofst_x + gap * (x_first + 0.5)
-        y = ofst_x - gap * (y_first + 0.5)
-
-        self.goto_pos([x, y, 90])  # 初期位置に移動
 
         num_action = 15
         # 経路に沿ってロボットを移動させる
@@ -653,7 +655,7 @@ class WrsMainController(object):
         self.change_pose("look_at_near_floor")
         gripper.command(0)
         self.change_pose("look_at_near_floor")
-        self.goto_name("standby_2a")
+        # self.goto_name("standby_2a")
 
         # 落ちているブロックを避けて移動
         self.execute_avoid_blocks()
