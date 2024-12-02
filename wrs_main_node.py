@@ -27,7 +27,7 @@ class WrsMainController(object):
     """
     WRSのシミュレーション環境内でタスクを実行するクラス
     """
-    IGNORE_LIST = ["small_marker", "large_marker",
+    IGNORE_LIST = ["small_marker", "large_marker", "fork", 
                    "lego_duplo", "spatula", "nine_hole_peg_test"]
     GRASP_TF_NAME = "object_grasping"
     GRASP_BACK_SAFE = {"z": 0.05, "xy": 0.3}
@@ -371,7 +371,7 @@ class WrsMainController(object):
         
         # bowlの張り付き対策
         elif label == "tuna_fish_can":
-            grasp_pos.x -= 0.08
+            grasp_pos.x -= 0.075
             grasp_pos.y -= 0.01
             method = self.grasp_from_upper_side
 
@@ -448,6 +448,7 @@ class WrsMainController(object):
         detected_objs = self.get_latest_detection()
         grasp_bbox = self.get_most_graspable_bboxes_by_label(
             detected_objs.bboxes, target_obj)
+        grasp_bbox.x -= 0.05
         if grasp_bbox is None:
             rospy.logwarn("Cannot find object to grasp. task2b is aborted.")
             return
@@ -472,13 +473,13 @@ class WrsMainController(object):
         62211170 高木裕輔
         """
 
-        ofst_x = 1.5  # 左上のx座標
+        ofst_x = 1.5 + 0.04  # 左上のx座標
         ofst_y = 1.8  # 左上のy座標
         gap = 0.1  # マスの1辺の大きさ
 
         # 初期値を設定
         (x_first, y_first) = (8, -1)  # 初期の座標
-        x = ofst_x + gap * (x_first + 0.5) + 0.1
+        x = ofst_x + gap * (x_first + 0.5) + 0.14
         y = ofst_x - gap * (y_first + 0.5) + 0.4
 
         self.goto_pos([x, y, 90])  # 初期位置に移動
@@ -508,7 +509,7 @@ class WrsMainController(object):
         board = int(board)
 
         # 障害物の位置をもとに経路を長さ15の文字列として取得
-        actions = self.a1table[str(board)]
+        actions = self.a2table[str(board)]
         rospy.loginfo("ACTIONS: " + actions)
 
         num_action = 15
@@ -584,7 +585,7 @@ class WrsMainController(object):
             "rubiks_cube": "task",
             "colored_wood_block": "task",
             "nine_hole_peg_test": "task",
-            "toy_airplane": "kitchen_item", # 洗剤の誤認識をキッチンアイテムにする
+            "toy_airplane": "task", # 洗剤の誤認識をキッチンアイテムにする
             "lego_duplo": "task",
             "magazine": "task",
             "black_t_shirt": "task",
@@ -624,8 +625,14 @@ class WrsMainController(object):
         hsr_position = [
             ("tall_table", "look_at_tall_table"),
             ("tall_table", "look_at_tall_table"),
+            ("tall_table", "look_at_tall_table"),
+            ("tall_table", "look_at_tall_table"),
             ("near_long_table_l", "look_at_near_floor"),
             ("near_long_table_l", "look_at_near_floor"),
+            ("near_long_table_l", "look_at_near_floor"),
+            ("near_long_table_l", "look_at_near_floor"),
+            ("long_table_r", "look_at_tall_table"),
+            ("long_table_r", "look_at_tall_table"),
             ("long_table_r", "look_at_tall_table"),
             ("long_table_r", "look_at_tall_table"),
         ]
