@@ -47,11 +47,11 @@ class WrsMainController(object):
         "tomato_soup_can", "banana", "strawberry", "apple", "lemon", "peach",
         "pear", "orange", "plum", "windex_bottle", "bleach_cleanser", "sponge",
         "pitcher_base", "pitcher_lid", "plate", "bowl", "fork", "spoon", "spatula",
-        "wine_glass", "mug", "large_marker", "small_marker", "padlock",
-        "bolt_and_nut", "clamp", "credit_card_blank", "mini_soccer_ball",
-        "softball", "baseball", "tennis_ball", "racquetball", "golf_ball",
-        "marble", "cup", "foam_brick", "dice", "rope", "chain", "rubiks_cube",
-        "colored_wood_block", "nine_hole_peg_test", "toy_airplane", "lego_duplo",
+        "wine_glass", "mug", "large_marker", "small_marker", "padlock", 
+        "bolt_and_nut", "clamp", "credit_card_blank", "mini_soccer_ball", 
+        "softball", "baseball", "tennis_ball", "racquetball", "golf_ball", 
+        "marble", "cup", "foam_brick", "dice", "rope", "chain", "rubiks_cube", 
+        "colored_wood_block", "nine_hole_peg_test", "toy_airplane", "lego_duplo", 
         "magazine", "black_t_shirt", "timer"
     ]
     VALID_PERSON_POSITIONS = [
@@ -67,7 +67,7 @@ class WrsMainController(object):
         self.coordinates = self.load_json(
             self.get_path(["config", "coordinates.json"]))
         self.poses = self.load_json(self.get_path(["config", "poses.json"]))
-        self.a1table = self.load_json(self.get_path(["config", "table.json"]))
+        self.a2table = self.load_json(self.get_path(["config", "table.json"]))
 
         # ROS通信関連の初期化
         tf_from_bbox_srv_name = "set_tf_from_bbox"
@@ -367,8 +367,13 @@ class WrsMainController(object):
             return False
 
         if label in ["cup", "frisbee", "bowl"]:
-            # bowlの張り付き対策
             method = self.grasp_from_upper_side
+        
+        # bowlの張り付き対策
+        elif label == "tuna_fish_can":
+            grasp_pos.x += 0.08
+            method = self.grasp_from_upper_side
+
         else:
             if desk_y < grasp_pos.y and desk_z > grasp_pos.z:
                 # 机の下である場合
@@ -454,7 +459,7 @@ class WrsMainController(object):
 
         # target_personの前に持っていく
         self.change_pose("look_at_near_floor")
-        self.goto_name(target_person)
+        self.goto_name(target_person)    # TODO: 配達先が固定されているので修正
         self.change_pose("deliver_to_human")
         rospy.sleep(10.0)
         gripper.command(1)
@@ -465,28 +470,17 @@ class WrsMainController(object):
         物体をよけて進行する
         62211170 高木裕輔
         """
-
-        ofst_x = 1.5  # 左上のx座標
-        ofst_y = 1.8  # 左上のy座標
-        gap = 0.1  # マスの1辺の大きさ
-
-        # 初期値を設定
-        (x_first, y_first) = (8, -1)  # 初期の座標
-        x = ofst_x + gap * (x_first + 0.5)
-        y = ofst_x - gap * (y_first + 0.5)
-
-        self.goto_pos([x, y, 90])  # 初期位置に移動
-
-        # 障害物を検出
+        # 所定の位置に立って障害物を検出
         detected_objs = self.get_latest_detection()
         bboxes = detected_objs.bboxes
         pos_bboxes = [self.get_grasp_coordinate(bbox) for bbox in bboxes]
-
         # 障害物の10x10の中での座標を特定
         disables = set()  # 重複認識を避けるためにsetを使用
         for bbox in pos_bboxes:
-            pos_x = (bbox.x - ofst_x) // gap
-            pos_y = (bbox.y - ofst_y) // gap
+            pos_x = bbox.x
+            pos_y = bbox.y
+            pos_x = int((pos_x - 1.5) / 0.1)
+            pos_y = int((pos_y - 1.8) / 0.1)
             disables.add(pos_x * 100 + pos_y)
             rospy.loginfo("DISABLE: " + str(pos_x) + "," + str(pos_y))
         disables = sorted(disables)
@@ -494,24 +488,23 @@ class WrsMainController(object):
         for i in disables:
             board = board * 10000 + i
         rospy.loginfo("BOARD: " + str(board))
-
-        # 障害物の位置をもとに経路を長さ15の文字列として取得
-        actions = self.a1table[str(board)]
-
-        num_action = 15
-        # 経路に沿ってロボットを移動させる
-        for i in range(num_action):
-            action = actions[i]
-            if action == "0":
-                x += gap
-            elif action == "1":
-                x -= gap
-            elif action == "3":
-                x += gap * 2
-            elif action == "4":
-                x -= gap * 2
-            y += gap
-            if i == num_action - 1 or actions[i] != actions[i + 1]:
+        # 強化学習の結果を参照して実際に障害物を避けて動く
+        action = self.a2table[str(board)]
+        x = 1.5 + 0.8 + 0.05
+        y = 1.8 - 0.05
+        # self.goto_pos([x, y, 90])
+        for i in range(10):
+            a = action[i]
+            if a == "0":
+                x += 0.1
+            elif a == "1":
+                x -= 0.1
+            elif a == "3":
+                x += 0.2
+            elif a == "4":
+                x -= 0.2
+            y += 0.1
+            if i == 14 or action[i] != action[i + 1]:
                 self.goto_pos([x, y, 90])
 
     def where_to_put(self, name, cnt):
@@ -524,7 +517,8 @@ class WrsMainController(object):
             "sugar_box": "food",
             "pudding_box": "food",
             "master_chef_can": "food",
-            "tuna_fish_can": "food",
+            "potted_meat_can": "task", # 誤認識したものをタスクアイテムにする
+            "tuna_fish_can": "kitchen_item", # 本来はbowlだが誤認識するツナ缶をキッチンアイテムに変更する
             "chips_can": "food",
             "mustard_bottle": "food",
             "tomato_soup_can": "food",
@@ -569,7 +563,7 @@ class WrsMainController(object):
             "rubiks_cube": "task",
             "colored_wood_block": "task",
             "nine_hole_peg_test": "task",
-            "toy_airplane": "task",
+            "toy_airplane": "kitchen_item", # 洗剤の誤認識をキッチンアイテムにする
             "lego_duplo": "task",
             "magazine": "task",
             "black_t_shirt": "task",
@@ -634,6 +628,7 @@ class WrsMainController(object):
                     continue
                 label = graspable_obj["label"]
                 grasp_bbox = graspable_obj["bbox"]
+                # TODO ラベル名を確認するためにコメントアウトを外す
                 rospy.loginfo("grasp the " + label)
                 # rospy.loginfo("grasp the " + str(type(label)))
 
@@ -655,7 +650,7 @@ class WrsMainController(object):
         self.change_pose("look_at_near_floor")
         gripper.command(0)
         self.change_pose("look_at_near_floor")
-        # self.goto_name("standby_2a")
+        self.goto_name("standby_2a")
 
         # 落ちているブロックを避けて移動
         self.execute_avoid_blocks()
