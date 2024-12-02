@@ -371,7 +371,8 @@ class WrsMainController(object):
         
         # bowlの張り付き対策
         elif label == "tuna_fish_can":
-            grasp_pos.x += 0.08
+            grasp_pos.x -= 0.08
+            grasp_pos.y -= 0.01
             method = self.grasp_from_upper_side
 
         else:
