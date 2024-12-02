@@ -470,42 +470,62 @@ class WrsMainController(object):
         物体をよけて進行する
         62211170 高木裕輔
         """
-        # 所定の位置に立って障害物を検出
+
+        ofst_x = 1.5  # 左上のx座標
+        ofst_y = 1.8  # 左上のy座標
+        gap = 0.1  # マスの1辺の大きさ
+
+        # 初期値を設定
+        (x_first, y_first) = (8, -1)  # 初期の座標
+        x = ofst_x + gap * (x_first + 0.5) + 0.1
+        y = ofst_x - gap * (y_first + 0.5) + 0.4
+
+        self.goto_pos([x, y, 90])  # 初期位置に移動
+
+        # 障害物を検出
         detected_objs = self.get_latest_detection()
         bboxes = detected_objs.bboxes
         pos_bboxes = [self.get_grasp_coordinate(bbox) for bbox in bboxes]
+
         # 障害物の10x10の中での座標を特定
         disables = set()  # 重複認識を避けるためにsetを使用
         for bbox in pos_bboxes:
-            pos_x = bbox.x
-            pos_y = bbox.y
-            pos_x = int((pos_x - 1.5) / 0.1)
-            pos_y = int((pos_y - 1.8) / 0.1)
-            disables.add(pos_x * 100 + pos_y)
+            pos_x = int((bbox.x - 0.1 - ofst_x) / gap)
+            pos_y = int((bbox.y - 0.3 - ofst_y) / gap)
+            if pos_x <= 2 or pos_x >= 15:
+                continue
+            if pos_y <= 1 or pos_y >= 14:
+                continue
+            if all((pos_x + i) * 100 + pos_y + j not in disables for i in range(-1, 2) for j in range(-1, 2)):
+                disables.add(pos_x * 100 + pos_y)
             rospy.loginfo("DISABLE: " + str(pos_x) + "," + str(pos_y))
         disables = sorted(disables)
         board = 0
         for i in disables:
             board = board * 10000 + i
         rospy.loginfo("BOARD: " + str(board))
-        # 強化学習の結果を参照して実際に障害物を避けて動く
-        action = self.a2table[str(board)]
-        x = 1.5 + 0.8 + 0.05
-        y = 1.8 - 0.05
-        # self.goto_pos([x, y, 90])
-        for i in range(10):
-            a = action[i]
-            if a == "0":
-                x += 0.1
-            elif a == "1":
-                x -= 0.1
-            elif a == "3":
-                x += 0.2
-            elif a == "4":
-                x -= 0.2
-            y += 0.1
-            if i == 14 or action[i] != action[i + 1]:
-                self.goto_pos([x, y, 90])
+        board = int(board)
+
+        # 障害物の位置をもとに経路を長さ15の文字列として取得
+        actions = self.a1table[str(board)]
+        rospy.loginfo("ACTIONS: " + actions)
+
+        num_action = 15
+        # 経路に沿ってロボットを移動させる
+        for i in range(num_action):
+            action = actions[i]
+            if action == "0":
+                x += gap
+            elif action == "1":
+                x -= gap
+            elif action == "3":
+                x += gap * 2
+            elif action == "4":
+                x -= gap * 2
+            y += gap
+            # if i == num_action - 1 or actions[i] != actions[i + 1]:
+            rospy.loginfo("I: " + str(i))
+            self.goto_pos([x, y, 90])
 
     def where_to_put(self, name, cnt):
         """
