@@ -27,7 +27,7 @@ class WrsMainController(object):
     """
     WRSのシミュレーション環境内でタスクを実行するクラス
     """
-    IGNORE_LIST = ["small_marker", "large_marker", "fork", 
+    IGNORE_LIST = [#"small_marker", "large_marker", #"fork", 
                    "lego_duplo", "spatula", "nine_hole_peg_test"]
     GRASP_TF_NAME = "object_grasping"
     GRASP_BACK_SAFE = {"z": 0.05, "xy": 0.3}
@@ -372,7 +372,7 @@ class WrsMainController(object):
         # bowlの張り付き対策
         elif label == "tuna_fish_can":
             grasp_pos.x -= 0.075
-            grasp_pos.y -= 0.01
+            grasp_pos.y -= 0.015
             method = self.grasp_from_upper_side
 
         else:
@@ -448,13 +448,14 @@ class WrsMainController(object):
         detected_objs = self.get_latest_detection()
         grasp_bbox = self.get_most_graspable_bboxes_by_label(
             detected_objs.bboxes, target_obj)
-        grasp_bbox.x -= 0.05
+        # grasp_bbox.x -= 0.02
         if grasp_bbox is None:
             rospy.logwarn("Cannot find object to grasp. task2b is aborted.")
             return
 
         # BBoxの3次元座標を取得して、その座標で把持する
         grasp_pos = self.get_grasp_coordinate(grasp_bbox)
+        grasp_pos.x -= 0.015
         self.change_pose("grasp_on_shelf")
         self.grasp_from_front_side(grasp_pos)
         self.change_pose("all_neutral")
@@ -501,6 +502,7 @@ class WrsMainController(object):
             if all((pos_x + i) * 100 + pos_y + j not in disables for i in range(-1, 2) for j in range(-1, 2)):
                 disables.add(pos_x * 100 + pos_y)
             rospy.loginfo("DISABLE: " + str(pos_x) + "," + str(pos_y))
+        disables = sorted(disables, key=lambda x: x % 100)[:2]
         disables = sorted(disables)
         board = 0
         for i in disables:
@@ -543,7 +545,7 @@ class WrsMainController(object):
             "tuna_fish_can": "kitchen_item", # 本来はbowlだが誤認識するツナ缶をキッチンアイテムに変更する
             "chips_can": "food",
             "mustard_bottle": "food",
-            "tomato_soup_can": "food",
+            "tomato_soup_can": "kitchen_item",
             "banana": "food",
             "strawberry": "food",
             "apple": "food",
@@ -623,14 +625,21 @@ class WrsMainController(object):
         """
         rospy.loginfo("#### start Task 1 ####")
         hsr_position = [
+            ("x", "look_at_near_floor"),
+            ("x", "look_at_near_floor"),
+            ("x", "look_at_near_floor"),
+            ("x", "look_at_near_floor"),
+            ("tall_table", "look_at_tall_table"),
             ("tall_table", "look_at_tall_table"),
             ("tall_table", "look_at_tall_table"),
             ("tall_table", "look_at_tall_table"),
             ("tall_table", "look_at_tall_table"),
             ("near_long_table_l", "look_at_near_floor"),
             ("near_long_table_l", "look_at_near_floor"),
-            ("near_long_table_l", "look_at_near_floor"),
-            ("near_long_table_l", "look_at_near_floor"),
+            ("x", "look_at_near_floor"),
+            ("x", "look_at_near_floor"),
+            ("x", "look_at_near_floor"),
+            ("long_table_r", "look_at_tall_table"),
             ("long_table_r", "look_at_tall_table"),
             ("long_table_r", "look_at_tall_table"),
             ("long_table_r", "look_at_tall_table"),
@@ -677,7 +686,7 @@ class WrsMainController(object):
         self.goto_name("home")
         self.change_pose("look_at_near_floor")
         gripper.command(0)
-        self.change_pose("look_at_near_floor")
+        self.change_pose("look_at_near_floor2")
         self.goto_name("standby_2a")
 
         # 落ちているブロックを避けて移動
