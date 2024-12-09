@@ -373,7 +373,18 @@ class WrsMainController(object):
         elif label == "tuna_fish_can":
             grasp_pos.x -= 0.075
             grasp_pos.y -= 0.015
+            grasp_pos.z += 0.005
             method = self.grasp_from_upper_side
+        elif "marker" in label:
+            grasp_pos.x += 0.008
+            grasp_pos.y -= 0.003
+            method = self.grasp_from_upper_side
+        elif label == "pudding_box":
+            grasp_pos.z -= 0.005
+            method = self.grasp_from_upper_side
+        elif label == "pitcher_base":
+            method = self.grasp_from_upper_side
+
 
         else:
             if desk_y < grasp_pos.y and desk_z > grasp_pos.z:
@@ -475,13 +486,13 @@ class WrsMainController(object):
         """
 
         ofst_x = 1.5 + 0.04  # 左上のx座標
-        ofst_y = 1.8  # 左上のy座標
+        ofst_y = 1.85  # 左上のy座標
         gap = 0.1  # マスの1辺の大きさ
 
         # 初期値を設定
         (x_first, y_first) = (8, -1)  # 初期の座標
-        x = ofst_x + gap * (x_first + 0.5) + 0.14
-        y = ofst_x - gap * (y_first + 0.5) + 0.4
+        x = ofst_x + gap * (x_first + 0.5) + 0.155
+        y = ofst_y - gap * (y_first + 0.5)
 
         self.goto_pos([x, y, 90])  # 初期位置に移動
 
@@ -536,6 +547,7 @@ class WrsMainController(object):
         nameに対応する置くべき場所を返す
         62211170 高木裕輔
         """
+        
         name_to_category = {
             "cracker_box": "food",
             "sugar_box": "food",
@@ -545,7 +557,7 @@ class WrsMainController(object):
             "tuna_fish_can": "kitchen_item", # 本来はbowlだが誤認識するツナ缶をキッチンアイテムに変更する
             "chips_can": "food",
             "mustard_bottle": "food",
-            "tomato_soup_can": "kitchen_item",
+            "tomato_soup_can": "food", #"kitchen_item",
             "banana": "food",
             "strawberry": "food",
             "apple": "food",
@@ -625,25 +637,33 @@ class WrsMainController(object):
         """
         rospy.loginfo("#### start Task 1 ####")
         hsr_position = [
+            ("z", "look_at_near_floor"),
+            ("z", "look_at_near_floor"),
+            ("z", "look_at_near_floor"),
+            ("z", "look_at_near_floor"),
+            ("z", "look_at_near_floor"),
+            ("z", "look_at_near_floor"),
+            ("z", "look_at_near_floor"),
+            ("z", "look_at_near_floor"),
+            ("x", "look_at_near_floor"),
+            ("y", "look_at_near_floor"),
             ("x", "look_at_near_floor"),
             ("x", "look_at_near_floor"),
-            ("x", "look_at_near_floor"),
-            ("x", "look_at_near_floor"),
             ("tall_table", "look_at_tall_table"),
             ("tall_table", "look_at_tall_table"),
             ("tall_table", "look_at_tall_table"),
             ("tall_table", "look_at_tall_table"),
             ("tall_table", "look_at_tall_table"),
+            ("long_table_r", "look_at_tall_table"),
+            ("long_table_r", "look_at_tall_table"),
+            ("long_table_r", "look_at_tall_table"),
+            ("long_table_r", "look_at_tall_table"),
+            ("long_table_r", "look_at_tall_table"),
             ("near_long_table_l", "look_at_near_floor"),
             ("near_long_table_l", "look_at_near_floor"),
             ("x", "look_at_near_floor"),
             ("x", "look_at_near_floor"),
             ("x", "look_at_near_floor"),
-            ("long_table_r", "look_at_tall_table"),
-            ("long_table_r", "look_at_tall_table"),
-            ("long_table_r", "look_at_tall_table"),
-            ("long_table_r", "look_at_tall_table"),
-            ("long_table_r", "look_at_tall_table"),
         ]
 
         cnt = 0
@@ -664,6 +684,8 @@ class WrsMainController(object):
                         "Cannot determine object to grasp. Grasping is aborted.")
                     continue
                 label = graspable_obj["label"]
+                if label == "plum":
+                    continue
                 grasp_bbox = graspable_obj["bbox"]
                 # TODO ラベル名を確認するためにコメントアウトを外す
                 rospy.loginfo("grasp the " + label)
