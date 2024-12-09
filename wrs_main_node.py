@@ -35,10 +35,6 @@ class WrsMainController(object):
     DETECT_CNT = 1
     TROFAST_Y_OFFSET = 0.2
 
-    """
-    instructionを解釈するためのリスト
-    62214418 中本光一
-    """
     VALID_OBJECTS = [
         "cracker_box", "sugar_box", "pudding_box", "gelatin_box", "potted_meat_can",
         "master_chef_can", "tuna_fish_can", "chips_can", "mustard_bottle",
