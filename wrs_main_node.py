@@ -9,7 +9,6 @@ import json
 import os
 from select import select
 import traceback
-from turtle import pos
 import re
 import rospy
 import rospkg
@@ -27,8 +26,7 @@ class WrsMainController(object):
     """
     WRSのシミュレーション環境内でタスクを実行するクラス
     """
-    IGNORE_LIST = [#"small_marker", "large_marker", #"fork", 
-                   "lego_duplo", "spatula", "nine_hole_peg_test"]
+    IGNORE_LIST = ["lego_duplo", "spatula", "nine_hole_peg_test"]
     GRASP_TF_NAME = "object_grasping"
     GRASP_BACK_SAFE = {"z": 0.05, "xy": 0.3}
     GRASP_BACK = {"z": 0.05, "xy": 0.1}
@@ -47,11 +45,11 @@ class WrsMainController(object):
         "tomato_soup_can", "banana", "strawberry", "apple", "lemon", "peach",
         "pear", "orange", "plum", "windex_bottle", "bleach_cleanser", "sponge",
         "pitcher_base", "pitcher_lid", "plate", "bowl", "fork", "spoon", "spatula",
-        "wine_glass", "mug", "large_marker", "small_marker", "padlock", 
-        "bolt_and_nut", "clamp", "credit_card_blank", "mini_soccer_ball", 
-        "softball", "baseball", "tennis_ball", "racquetball", "golf_ball", 
-        "marble", "cup", "foam_brick", "dice", "rope", "chain", "rubiks_cube", 
-        "colored_wood_block", "nine_hole_peg_test", "toy_airplane", "lego_duplo", 
+        "wine_glass", "mug", "large_marker", "small_marker", "padlock",
+        "bolt_and_nut", "clamp", "credit_card_blank", "mini_soccer_ball",
+        "softball", "baseball", "tennis_ball", "racquetball", "golf_ball",
+        "marble", "cup", "foam_brick", "dice", "rope", "chain", "rubiks_cube",
+        "colored_wood_block", "nine_hole_peg_test", "toy_airplane", "lego_duplo",
         "magazine", "black_t_shirt", "timer"
     ]
     VALID_PERSON_POSITIONS = [
@@ -368,7 +366,6 @@ class WrsMainController(object):
 
         if label in ["cup", "frisbee", "bowl"]:
             method = self.grasp_from_upper_side
-        
         # bowlの張り付き対策
         elif label == "tuna_fish_can":
             grasp_pos.x -= 0.075
@@ -380,12 +377,13 @@ class WrsMainController(object):
             grasp_pos.y -= 0.003
             method = self.grasp_from_upper_side
         elif label == "pudding_box":
-            grasp_pos.z -= 0.005
+            grasp_pos.z -= 0.007
+            grasp_pos.y -= 0.02
             method = self.grasp_from_upper_side
         elif label == "pitcher_base":
-            method = self.grasp_from_upper_side
-
-
+            grasp_pos.y += 0.08
+            grasp_pos.z -= 0.15
+            method = self.grasp_from_front_side
         else:
             if desk_y < grasp_pos.y and desk_z > grasp_pos.z:
                 # 机の下である場合
@@ -473,7 +471,7 @@ class WrsMainController(object):
 
         # target_personの前に持っていく
         self.change_pose("look_at_near_floor")
-        self.goto_name(target_person)    # TODO: 配達先が固定されているので修正
+        self.goto_name(target_person)
         self.change_pose("deliver_to_human")
         rospy.sleep(10.0)
         gripper.command(1)
@@ -510,7 +508,8 @@ class WrsMainController(object):
                 continue
             if pos_y <= 1 or pos_y >= 14:
                 continue
-            if all((pos_x + i) * 100 + pos_y + j not in disables for i in range(-1, 2) for j in range(-1, 2)):
+            if all((pos_x + i) * 100 + pos_y + j not in disables
+                    for i in range(-1, 2) for j in range(-1, 2)):
                 disables.add(pos_x * 100 + pos_y)
             rospy.loginfo("DISABLE: " + str(pos_x) + "," + str(pos_y))
         disables = sorted(disables, key=lambda x: x % 100)[:2]
@@ -547,17 +546,16 @@ class WrsMainController(object):
         nameに対応する置くべき場所を返す
         62211170 高木裕輔
         """
-        
         name_to_category = {
             "cracker_box": "food",
             "sugar_box": "food",
-            "pudding_box": "food",
+            "pudding_box": "tool",
             "master_chef_can": "food",
-            "potted_meat_can": "task", # 誤認識したものをタスクアイテムにする
-            "tuna_fish_can": "kitchen_item", # 本来はbowlだが誤認識するツナ缶をキッチンアイテムに変更する
+            "potted_meat_can": "task",
+            "tuna_fish_can": "kitchen_item",
             "chips_can": "food",
             "mustard_bottle": "food",
-            "tomato_soup_can": "food", #"kitchen_item",
+            "tomato_soup_can": "food",
             "banana": "food",
             "strawberry": "food",
             "apple": "food",
@@ -569,7 +567,7 @@ class WrsMainController(object):
             "windex_bottle": "kitchen_item",
             "bleach_cleanser": "kitchen_item",
             "sponge": "kitchen_item",
-            "pitcher_base": "kitchen_item",
+            "pitcher_base": "tool",
             "pitcher_lid": "kitchen_item",
             "plate": "kitchen_item",
             "bowl": "kitchen_item",
@@ -590,7 +588,7 @@ class WrsMainController(object):
             "tennis_ball": "shape",
             "racquetball": "shape",
             "golf_ball": "shape",
-            "marble": "shape",
+            "marble": "food",
             "cup": "shape",
             "foam_brick": "shape",
             "dice": "shape",
@@ -599,7 +597,7 @@ class WrsMainController(object):
             "rubiks_cube": "task",
             "colored_wood_block": "task",
             "nine_hole_peg_test": "task",
-            "toy_airplane": "task", # 洗剤の誤認識をキッチンアイテムにする
+            "toy_airplane": "task",
             "lego_duplo": "task",
             "magazine": "task",
             "black_t_shirt": "task",
@@ -613,8 +611,10 @@ class WrsMainController(object):
             "shape": "left",
             "tool": "top_bottom"
         }
-
-        place = category_to_place[name_to_category[name]]
+        try:
+            place = category_to_place[name_to_category[name]]
+        except:
+            place = "bin_a"
         rospy.loginfo("WHERE TO GO!! " + place)
         # 一旦引き出しを開ける動作はあきらめてbin_bに入れる
         if place == "tray":
@@ -687,7 +687,6 @@ class WrsMainController(object):
                 if label == "plum":
                     continue
                 grasp_bbox = graspable_obj["bbox"]
-                # TODO ラベル名を確認するためにコメントアウトを外す
                 rospy.loginfo("grasp the " + label)
                 # rospy.loginfo("grasp the " + str(type(label)))
 
